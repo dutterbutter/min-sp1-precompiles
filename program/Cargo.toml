@@ -1,0 +1,10 @@
+[package]
+version = "0.1.0"
+name = "hasher-program"
+edition = "2021"
+
+[dependencies]
+alloy-sol-types = { workspace = true }
+alloy-primitives = { workspace = true }
+sp1-zkvm = "4.0.0"
+hasher-lib = { path = "../lib" }
