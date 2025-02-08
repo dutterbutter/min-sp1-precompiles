@@ -3,7 +3,7 @@ sp1_zkvm::entrypoint!(main);
 
 use alloy_primitives::FixedBytes;
 use alloy_sol_types::SolValue;
-use hasher_lib::{hash_keccak_precompile, hash_keccak_sw, PublicHashResult};
+use hasher_lib::{hash_keccak_with_precompile, hash_keccak_without_precompile, PublicHashResult};
 use sp1_zkvm::io;
 
 pub fn main() {
@@ -13,12 +13,11 @@ pub fn main() {
     // Showcase purposes only lol
     let use_patched = flag != 0;
     let hash = if use_patched {
-        hash_keccak_precompile(&message)
+        hash_keccak_with_precompile(&message)
     } else {
-        hash_keccak_sw(&message)
+        hash_keccak_without_precompile(&message)
     };
 
-    // Package the public output.
     let public = PublicHashResult {
         input: message.into(),
         patched: use_patched,

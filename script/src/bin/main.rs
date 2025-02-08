@@ -34,45 +34,38 @@ struct Args {
 
     /// Use patched version of tiny-keccak.
     #[clap(long)]
-    patched: bool,
+    precompile: bool,
 
     /// Use un-patched version of tiny-keccak.
-    #[clap(long = "un-patched")]
-    un_patched: bool,
+    #[clap(long = "without-precompile")]
+    without_precompile: bool,
 }
 
 fn main() {
     sp1_sdk::utils::setup_logger();
     dotenv::dotenv().ok();
 
-    // Parse command-line arguments.
     let args = Args::parse();
 
     if args.execute == args.prove {
         eprintln!("Error: You must specify either --execute or --prove");
         std::process::exit(1);
     }
-    if args.patched == args.un_patched {
-        eprintln!("Error: You must specify either --patched or --un-patched");
+    if args.precompile == args.without_precompile {
+        eprintln!("Error: You must specify either --precompile or --without-precompile");
         std::process::exit(1);
     }
-    let use_patched: bool = args.patched;
+    let use_patched: bool = args.precompile;
 
-    // Initialize the prover client.
     let client = ProverClient::from_env();
-
-    // Set up the input to the program.
     let mut stdin = SP1Stdin::new();
 
-    // First write a flag indicating which implementation to use.
     let flag: u8 = if use_patched { 1 } else { 0 };
     stdin.write(&flag);
-
     stdin.write(&args.message.as_bytes());
 
     if args.execute {
         let (output, report) = client.execute(HASH_PROGRAM_ELF, &stdin).run().unwrap();
-        println!("Program executed successfully.");
 
         let decoded = PublicHashResult::abi_decode(output.as_slice(), true)
             .expect("Failed to decode public values");
@@ -82,23 +75,23 @@ fn main() {
             hash,
         } = decoded;
 
-        println!("Input (hex): {}", hex::encode(input));
         println!(
-            "Implementation used: {}",
-            if patched { "patched" } else { "un-patched" }
+            "Execution: {}",
+            if patched {
+                "Using Keccak256 precompile"
+            } else {
+                "Without Keccak256 precompile"
+            }
         );
+        println!("Input (hex): {}", hex::encode(input));
         println!("Computed hash: {}", hex::encode(hash));
-
         println!(
             "Total cycles reported: {}",
             report.total_instruction_count()
         );
-        println!("Number of constraints: {}", report.total_syscall_count());
     } else {
-        // Set up the proving keys.
         let (pk, vk) = client.setup(HASH_PROGRAM_ELF);
 
-        // Generate the proof.
         let proof = client
             .prove(&pk, &stdin)
             .run()
@@ -106,7 +99,6 @@ fn main() {
 
         println!("Proof generated successfully!");
 
-        // Verify the proof.
         client.verify(&proof, &vk).expect("failed to verify proof");
         println!("Proof verified successfully!");
     }

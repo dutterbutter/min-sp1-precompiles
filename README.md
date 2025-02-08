@@ -30,36 +30,36 @@ To run the program **without generating a proof**, use one of the following comm
 #### Run with **Patched SP1 tiny-keccak**:
 
 ```sh
-RUST_LOG=info cargo run --release -- --execute --patched
+RUST_LOG=info cargo run --release -- --execute --precompile
 ```
 
 #### Run with **Non-patched (tiny-keccak)**:
 
 ```sh
-RUST_LOG=info cargo run --release -- --execute --un-patched
+RUST_LOG=info cargo run --release -- --execute --without-precompile
 ```
 
 The output will display:
 
 - The input message.
-- The selected hash implementation (`patched` or `un-patched`).
+- The selected hash implementation (`precompile` or `without-precompile`).
 - The computed Keccak256 hash.
 - The total cycle count reported by the SP1 VM.
 
 ### Generate a Core Proof
 
-To generate a proof for your program (un-patched):
+To generate a proof for your program without using precompile:
 
 ```sh
 cd script
-cargo run --release -- --prove --un-patched
+cargo run --release -- --prove --without-precompile
 ```
 
-To generate a proof for your program (patched):
+To generate a proof for your program using precompile:
 
 ```sh
 cd script
-cargo run --release -- --prove --patched
+cargo run --release -- --prove --precompile
 ```
 
 Observe `prover-core` cycles summary!
